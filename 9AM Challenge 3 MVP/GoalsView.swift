@@ -821,7 +821,7 @@ private struct GoalEditorView: View {
                         }
 
                         Text(effectiveTitle)
-                            .font(.dynaPuff(17).weight(.semibold))
+                            .font(.dynaPuff(17).weight(.medium))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 2)
                     } else {
