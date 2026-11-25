@@ -41,6 +41,18 @@ struct RestaurantDetailView: View {
         checkedRaw = ids.sorted().joined(separator: ",")
     }
 
+    /// Directory phone numbers can contain spaces or tabs, so strip anything
+    /// that is not part of a dialable number before building the tel: link.
+    private var phoneNumber: String {
+        restaurant.phone.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var phoneDialURL: URL? {
+        let digits = phoneNumber.filter { $0.isASCII && ($0.isNumber || $0 == "+") }
+        guard !digits.isEmpty else { return nil }
+        return URL(string: "tel://\(digits)")
+    }
+
     // Kept here so the detail screen can show Munchkin's dietary check too.
     @AppStorage("dietVegetarian") private var vegetarian = false
     @AppStorage("dietVegan") private var vegan = false
@@ -128,11 +140,22 @@ struct RestaurantDetailView: View {
                         systemImage: "map.circle.fill"
                     )
 
-                    if !restaurant.phone.isEmpty {
-                        Label(
-                            "Phone: \(restaurant.phone)",
-                            systemImage: "phone.circle.fill"
-                        )
+                    if !phoneNumber.isEmpty {
+                        if let phoneDialURL {
+                            Link(destination: phoneDialURL) {
+                                Label(
+                                    "Phone: \(phoneNumber)",
+                                    systemImage: "phone.circle.fill"
+                                )
+                            }
+                            .tint(.orange)
+                            .accessibilityLabel("Call \(phoneNumber)")
+                        } else {
+                            Label(
+                                "Phone: \(phoneNumber)",
+                                systemImage: "phone.circle.fill"
+                            )
+                        }
                     }
 
                     if let websiteURL = restaurant.websiteURL {
