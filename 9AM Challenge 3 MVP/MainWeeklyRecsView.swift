@@ -60,7 +60,7 @@ struct WeeklyRecsView: View {
 
                 Text("Weekly Recommendations")
                     .font(.dynaPuff(34))
-                    .fontWeight(.bold)
+                    .fontWeight(.medium)
 
                 Text(
                     region.isAnywhere
