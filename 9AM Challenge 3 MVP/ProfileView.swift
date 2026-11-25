@@ -151,7 +151,7 @@ struct ProfileView: View {
 
                         Text("My Preferences")
                             .font(.dynaPuff(22))
-                            .fontWeight(.bold)
+                            .fontWeight(.medium)
 
                         // Location
                         VStack(alignment: .leading, spacing: 8) {
