@@ -287,15 +287,11 @@ struct GoalsView: View {
                     }
                     .rowStyling(top: 12, bottom: 0)
 
+                    // Completed goals are locked: only the claim action is
+                    // available, so their earned reward cannot be altered.
                     ForEach(claimableGoals) { g in
                         goalRow(g)
                             .rowStyling()
-                            .swipeActions(edge: .leading) {
-                                editSwipe(for: g)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                deleteSwipe(for: g)
-                            }
                     }
                 }
 
@@ -532,6 +528,7 @@ struct GoalsView: View {
     }
 
     func openEditor(for goal: GoalItem) {
+        guard goal.completedAt == nil else { return }
         editor = GoalEditor(goal: goal, isNew: false)
     }
 
@@ -560,6 +557,9 @@ struct GoalsView: View {
     }
 
     func deleteGoal(_ id: UUID) {
+        guard let goal = goals.first(where: { $0.id == id }),
+              goal.completedAt == nil
+        else { return }
         goals.removeAll { $0.id == id }
         save()
     }
