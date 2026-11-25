@@ -11,6 +11,9 @@ struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage(AppAppearance.storageKey) private var appearanceMode = AppAppearance.device
 
+    @StateObject private var location = UserLocationProvider()
+    @State private var showLocationPrompt = false
+
     var body: some View {
         TabView {
             Tab("Home", systemImage: "house.fill") {
@@ -32,6 +35,27 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(AppAppearance.colorScheme(for: appearanceMode))
+        .onAppear {
+            location.refreshStatus()
+            if hasCompletedOnboarding && !location.isAuthorized {
+                showLocationPrompt = true
+            }
+        }
+        .onChange(of: hasCompletedOnboarding) { _, completed in
+            // Ask again on every open while permission is missing, including
+            // right after the tutorial finishes on first launch.
+            if completed && !location.isAuthorized {
+                showLocationPrompt = true
+            }
+        }
+        .alert("Find spots near you?", isPresented: $showLocationPrompt) {
+            Button("Allow Location") {
+                location.requestPermission()
+            }
+            Button("Not Now", role: .cancel) {}
+        } message: {
+            Text("Munchkins can sort weekly picks by distance. You can still browse every region with Anywhere.")
+        }
         .fullScreenCover(
             isPresented: Binding(
                 get: { !hasCompletedOnboarding },

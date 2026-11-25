@@ -10,6 +10,7 @@
 import SwiftUI
 import Combine
 import CoreLocation
+import UIKit
 
 @MainActor
 final class UserLocationProvider: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -26,7 +27,29 @@ final class UserLocationProvider: NSObject, ObservableObject, CLLocationManagerD
         status = manager.authorizationStatus
     }
 
-    func requestLocation() {
+    var isAuthorized: Bool {
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways: return true
+        default: return false
+        }
+    }
+
+    var isDenied: Bool {
+        switch status {
+        case .denied, .restricted: return true
+        default: return false
+        }
+    }
+
+    /// Keeps the cached permission state in sync with Settings, where the user
+    /// may have changed it since the app was last opened.
+    func refreshStatus() {
+        status = manager.authorizationStatus
+    }
+
+    /// Used by the "allow location?" prompt on app launch. Denied users are
+    /// taken to Settings, since iOS will not show the system prompt again.
+    func requestPermission() {
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
@@ -35,10 +58,17 @@ final class UserLocationProvider: NSObject, ObservableObject, CLLocationManagerD
             manager.requestLocation()
         case .denied, .restricted:
             location = nil
-            message = "Enable Location in Settings to find spots near you."
+            guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(url)
         @unknown default:
             break
         }
+    }
+
+    func requestLocation() {
+        guard isAuthorized else { return }
+        message = nil
+        manager.requestLocation()
     }
 
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
@@ -81,9 +111,14 @@ final class UserLocationProvider: NSObject, ObservableObject, CLLocationManagerD
 
 struct NearMeStatusMessage: View {
     @ObservedObject var location: UserLocationProvider
+    var isActive: Bool
 
     var body: some View {
-        if location.location == nil {
+        if location.isDenied {
+            Text("Location is off — showing all regions.")
+                .font(.dynaPuff(12))
+                .foregroundStyle(AppColor.secondaryText)
+        } else if isActive && location.location == nil {
             Text(location.message ?? "Finding your location…")
                 .font(.dynaPuff(12))
                 .foregroundStyle(AppColor.secondaryText)

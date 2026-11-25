@@ -17,10 +17,10 @@ struct WeeklyRecommendationsSection: View {
 
     @StateObject private var location = UserLocationProvider()
 
-    /// The unrestricted region option is presented as "Near Me" here, so
-    /// picking it turns on distance sorting.
+    /// The unrestricted region option becomes "Near Me" only while location is
+    /// available. Without permission it stays "Anywhere" and shows every spot.
     private var isNearMe: Bool {
-        preferredLocation == "Anywhere"
+        preferredLocation == "Anywhere" && location.isAuthorized
     }
 
     private var persona: FoodPersona {
@@ -85,20 +85,22 @@ struct WeeklyRecommendationsSection: View {
                 Menu {
                     Picker("Region", selection: $preferredLocation) {
                         ForEach(RestaurantRegion.allCases) { region in
-                            Text(region.isAnywhere ? "Near Me" : region.rawValue)
+                            Text(region.isAnywhere && location.isAuthorized
+                                 ? "Near Me"
+                                 : region.rawValue)
                                 .tag(region.rawValue)
                         }
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        Image(systemName: region.isAnywhere
+                        Image(systemName: isNearMe
                               ? "location.fill"
                               : "mappin.circle.fill")
 
                         Text(
-                            region.isAnywhere
+                            isNearMe
                                 ? "Near Me"
-                                : "\(region.rawValue) region"
+                                : (region.isAnywhere ? "Anywhere" : "\(region.rawValue) region")
                         )
 
                         Image(systemName: "chevron.down")
@@ -116,9 +118,7 @@ struct WeeklyRecommendationsSection: View {
                 Spacer()
             }
 
-            if isNearMe {
-                NearMeStatusMessage(location: location)
-            }
+            NearMeStatusMessage(location: location, isActive: isNearMe)
 
             if restaurants.isEmpty {
                 Text(diet.isEmpty
@@ -146,6 +146,7 @@ struct WeeklyRecommendationsSection: View {
             }
         }
         .onAppear {
+            location.refreshStatus()
             if isNearMe { location.requestLocation() }
         }
         .onChange(of: isNearMe) { _, newValue in

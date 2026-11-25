@@ -20,15 +20,7 @@ enum VisitedRestaurants {
             return Set(saved)
         }
 
-        // Older builds had no visited list. A saved review means the spot was
-        // already eaten at, so seed the list from review history.
-        let migrated = Set(
-            ReviewHistory.all().compactMap { review in
-                RestaurantDirectory.all.first { $0.name == review.restaurantName }?.id
-            }
-        )
-        if !migrated.isEmpty { save(migrated) }
-        return migrated
+        return []
     }
 
     static func contains(_ id: String) -> Bool {

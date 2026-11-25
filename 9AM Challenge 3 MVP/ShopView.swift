@@ -598,28 +598,41 @@ private struct AccessoryDetailSheet: View {
     private let deepGreen = AppColor.greenInk
     private let cream = AppColor.background
 
+    /// Locked accessories must stay a surprise, so none of their catalogue
+    /// details are shown until the unlock requirement is met.
+    private var revealed: Bool { unlocked || owned }
+
     var body: some View {
         VStack(spacing: 18) {
-            Text(item.emoji)
+            Text(revealed ? item.emoji : "?")
                 .font(.dynaPuff(76))
+                .foregroundStyle(revealed ? Color.primary : deepGreen.opacity(0.6))
                 .frame(width: 130, height: 130)
                 .background(cream)
                 .clipShape(Circle())
 
             VStack(spacing: 6) {
-                Text(item.name)
+                Text(revealed ? item.name : "Mystery item")
                     .font(.dynaPuff(22))
                     .fontWeight(.bold)
 
-                Text("\(item.category.emoji) \(item.category.title) accessory")
-                    .font(.dynaPuff(13).weight(.semibold))
-                    .foregroundStyle(deepGreen)
+                if revealed {
+                    Text("\(item.category.emoji) \(item.category.title) accessory")
+                        .font(.dynaPuff(13).weight(.semibold))
+                        .foregroundStyle(deepGreen)
 
-                Text(item.about)
-                    .font(.dynaPuff(15))
-                    .foregroundStyle(AppColor.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 12)
+                    Text(item.about)
+                        .font(.dynaPuff(15))
+                        .foregroundStyle(AppColor.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 12)
+                } else {
+                    Text("A surprise for your Munchkin — keep collecting to find out what's inside!")
+                        .font(.dynaPuff(15))
+                        .foregroundStyle(AppColor.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 12)
+                }
             }
 
             Spacer(minLength: 0)

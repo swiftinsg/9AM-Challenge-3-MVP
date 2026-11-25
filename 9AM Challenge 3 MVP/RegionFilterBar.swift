@@ -10,16 +10,16 @@ import SwiftUI
 struct RegionFilterBar: View {
     @Binding var selection: String
 
-    /// Weekly recommendations use "Near Me" for the unrestricted option and
-    /// then sort those picks by distance.
-    var usesNearMeLabel = false
+    /// Weekly recommendations show "Near Me" instead of "Anywhere" only while
+    /// location permission is available.
+    var allowsNearMe = false
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(RestaurantRegion.allCases) { region in
                     let isSelected = selection == region.rawValue
-                    let isNearMeOption = usesNearMeLabel && region.isAnywhere
+                    let isNearMeOption = allowsNearMe && region.isAnywhere
                     let title = isNearMeOption ? "Near Me" : region.rawValue
 
                     Button {

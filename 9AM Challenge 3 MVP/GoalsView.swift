@@ -124,7 +124,7 @@ enum GoalKeywords {
 
     /// Controlled building blocks for the guided editor. Every noun contains a
     /// word the visit tracker recognises, so any combination is trackable.
-    static let goalVerbs = ["Try", "Explore", "Visit"]
+    static let goalVerbs = ["Try", "Visit"]
     static let goalNouns = [
         "restaurants", "cuisines", "spots", "cafes", "places to eat", "desserts"
     ]

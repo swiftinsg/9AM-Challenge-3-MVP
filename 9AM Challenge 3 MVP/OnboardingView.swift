@@ -130,7 +130,6 @@ struct OnboardingView: View {
     private func applyRecommendation() {
         let result = recommendation
         FoodPersonaStore.setPreferredPersona(result.persona, reason: result.explanation)
-        NotificationCenter.default.post(name: .personaDidChange, object: nil)
     }
 
     private func toggleFlavour(_ id: String) {
@@ -142,8 +141,6 @@ struct OnboardingView: View {
     }
 
     private func finish() {
-        _ = FoodPersonaStore.resolve(force: true)
-        NotificationCenter.default.post(name: .personaDidChange, object: nil)
         dismiss()
     }
 
@@ -224,14 +221,14 @@ struct OnboardingView: View {
                 tutorialCard(
                     "person.crop.circle.fill",
                     "Profile",
-                    "See which pet matches your reviews and change preferences."
+                    "See your Munchkin and change your preferences."
                 )
             }
             .padding(16)
             .background(AppColor.card)
             .clipShape(RoundedRectangle(cornerRadius: 22))
 
-            Text("After a meal, leave a rating and review in any restaurant — that's how your pet learns what you love!")
+            Text("Your Munchkin's tastes help shape the weekly restaurant picks just for you.")
                 .font(.dynaPuff(13))
                 .foregroundStyle(AppColor.secondaryText)
         }
@@ -323,7 +320,7 @@ struct OnboardingView: View {
                     .foregroundStyle(AppColor.secondaryText)
                     .multilineTextAlignment(.center)
 
-                Text("Rate a few restaurants and I'll change to match your reviews.")
+                Text("I'll use your tastes to shape your weekly restaurant picks.")
                     .font(.dynaPuff(11))
                     .foregroundStyle(.teal)
                     .multilineTextAlignment(.center)

@@ -27,16 +27,8 @@ struct HomeView: View {
                         .frame(width: 375, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 15) {
-                        HStack {
-                            Text("Your Food Persona")
-                                .font(.dynaPuff(17))
-
-                            Spacer()
-
-                            Text("\(personaSnapshot.reviewCount) \(personaSnapshot.reviewCount == 1 ? "rating" : "ratings")")
-                                .font(.dynaPuff(13))
-                                .foregroundStyle(AppColor.secondaryText)
-                        }
+                        Text("Your Food Persona")
+                            .font(.dynaPuff(17))
 
                         HStack(spacing: 15) {
                             MunchkinAvatarView(persona: personaSnapshot.persona, size: 65)
@@ -149,7 +141,7 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .personaDidChange)) { _ in
             // Onboarding picks the starting pet behind its sheet; refresh here
             // so Home already shows the new Munchkin when the sheet closes.
-            personaSnapshot = FoodPersonaStore.resolve(force: true)
+            personaSnapshot = FoodPersonaStore.resolve()
         }
     }
 

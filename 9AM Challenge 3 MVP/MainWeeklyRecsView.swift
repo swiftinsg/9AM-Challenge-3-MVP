@@ -21,10 +21,10 @@ struct WeeklyRecsView: View {
     @State private var searchText = ""
     @StateObject private var location = UserLocationProvider()
 
-    /// "Anywhere" is shown as "Near Me" on this screen and turns on distance
-    /// sorting for the weekly picks.
+    /// "Anywhere" is shown as "Near Me" only while location is available.
+    /// Without permission it stays "Anywhere" and shows all regions.
     private var isNearMe: Bool {
-        preferredLocation == "Anywhere"
+        preferredLocation == "Anywhere" && location.isAuthorized
     }
 
     private var persona: FoodPersona {
@@ -91,11 +91,12 @@ struct WeeklyRecsView: View {
                     .font(.dynaPuff(13))
                     .foregroundStyle(AppColor.secondaryText)
 
-                RegionFilterBar(selection: $preferredLocation, usesNearMeLabel: true)
+                RegionFilterBar(
+                    selection: $preferredLocation,
+                    allowsNearMe: location.isAuthorized
+                )
 
-                if isNearMe {
-                    NearMeStatusMessage(location: location)
-                }
+                NearMeStatusMessage(location: location, isActive: isNearMe)
 
                 if visibleRestaurants.isEmpty {
                     ContentUnavailableView(
@@ -137,6 +138,7 @@ struct WeeklyRecsView: View {
             AppColor.background
         )
         .onAppear {
+            location.refreshStatus()
             if isNearMe { location.requestLocation() }
         }
         .onChange(of: isNearMe) { _, newValue in

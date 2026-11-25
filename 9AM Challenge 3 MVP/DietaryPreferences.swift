@@ -200,7 +200,7 @@ extension Restaurant {
     ) -> DietAdherence {
         var matched: [DietaryRestriction] = []
         var uncertain: [DietaryRestriction] = []
-        var conflicting: [DietaryRestriction] = []
+        let conflicting: [DietaryRestriction] = []
         var offersVeganOptions = false
 
         for restriction in preferences.active {
