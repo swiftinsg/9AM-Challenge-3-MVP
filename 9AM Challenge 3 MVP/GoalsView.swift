@@ -746,6 +746,60 @@ private struct GoalEditorView: View {
         max(minTarget, GoalKeywords.maximumTarget(for: effectiveTitle))
     }
 
+    /// Typed number plus tap controls, used in both goal editor modes.
+    private func targetInput(_ label: String) -> some View {
+        HStack(spacing: 12) {
+            Text(label)
+
+            Spacer()
+
+            Button {
+                target = max(minTarget, target - 1)
+            } label: {
+                Image(systemName: "minus.circle.fill")
+                    .font(.dynaPuff(22))
+                    .foregroundStyle(.orange)
+            }
+            .buttonStyle(.plain)
+            .disabled(target <= minTarget)
+            .accessibilityLabel("Decrease \(label.lowercased())")
+
+            TextField("", value: $target, format: .number)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .frame(width: 50)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit { target = max(minTarget, target) }
+                .accessibilityLabel(label)
+
+            Button {
+                target = min(maxTarget, target + 1)
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.dynaPuff(22))
+                    .foregroundStyle(.orange)
+            }
+            .buttonStyle(.plain)
+            .disabled(target >= maxTarget)
+            .accessibilityLabel("Increase \(label.lowercased())")
+        }
+        .onChange(of: target) { _, newValue in
+            // Only cap the upper bound while typing, so a value like "10" can
+            // be entered one digit at a time. The lower bound is applied when
+            // the field is submitted or the goal is saved.
+            let cap = min(newValue, maxTarget)
+            if cap != newValue {
+                target = cap
+            }
+            // Keep a custom title's number in sync with the typed target.
+            if !useTemplate,
+               let template = GoalTemplate.parse(title),
+               GoalKeywords.targetNumber(in: title) != cap {
+                title = "\(template.verb) \(cap) new \(template.noun)"
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -756,11 +810,7 @@ private struct GoalEditorView: View {
                                 Text(word).tag(word)
                             }
                         }
-                        Picker("How many", selection: $target) {
-                            ForEach(minTarget...maxTarget, id: \.self) { number in
-                                Text("\(number)").tag(number)
-                            }
-                        }
+                        targetInput("How many")
                         Picker("Kind of place", selection: $noun) {
                             ForEach(GoalKeywords.goalNouns, id: \.self) { value in
                                 Text(value).tag(value)
@@ -784,7 +834,7 @@ private struct GoalEditorView: View {
                                 }
                             }
 
-                        Stepper("Target: \(target)", value: $target, in: minTarget...maxTarget)
+                        targetInput("Target")
                     }
 
                     LabeledContent("Difficulty", value: difficulty)
@@ -887,6 +937,7 @@ private struct GoalEditorView: View {
     }
 
     private func save() {
+        target = min(max(target, minTarget), maxTarget)
         guard canSave else { return }
 
         var updated = editor.goal

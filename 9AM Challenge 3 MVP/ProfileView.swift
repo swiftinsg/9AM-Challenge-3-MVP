@@ -69,10 +69,18 @@ struct ProfileView: View {
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // MARK: Food Persona
+                    // MARK: Food Persona (changes with your reviews)
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Your Food Persona")
-                            .font(.dynaPuff(17))
+                        HStack {
+                            Text("Your Food Persona")
+                                .font(.dynaPuff(17))
+
+                            Spacer()
+
+                            Text("\(personaSnapshot.reviewCount) \(personaSnapshot.reviewCount == 1 ? "rating" : "ratings")")
+                                .font(.dynaPuff(13))
+                                .foregroundStyle(AppColor.secondaryText)
+                        }
 
                         HStack(spacing: 15) {
                             MunchkinAvatarView(persona: personaSnapshot.persona, size: 65)

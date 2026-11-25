@@ -13,9 +13,17 @@ struct RestaurantDetailView: View {
 
     let restaurant: Restaurant
 
+    // User feedback
     /// The tick is stored directly, never derived from visit history, so an
     /// unchecked box stays unchecked when the screen is reopened.
     @AppStorage("checked_restaurant_ids_v2") private var checkedRaw = ""
+    @State private var rating = 0
+    @State private var selectedFlavours: Set<String> = []
+    @State private var writtenReview = ""
+
+    private var reviewKey: String {
+        "review_\(restaurant.name)"
+    }
 
     private var checkedIDs: Set<String> {
         Set(checkedRaw.split(separator: ",").map(String.init))
@@ -59,6 +67,15 @@ struct RestaurantDetailView: View {
             halal: halal
         )
     }
+
+    let flavours = [
+        "🌶️ Spicy",
+        "🍜 Savoury",
+        "🍰 Sweet",
+        "🍲 Comforting",
+        "🍋 Tangy",
+        "🥗 Fresh"
+    ]
 
     var body: some View {
         ScrollView {
@@ -194,6 +211,11 @@ struct RestaurantDetailView: View {
                         .font(.dynaPuff(13))
                         .foregroundStyle(AppColor.secondaryText)
                 }
+
+                // Only show feedback if visited
+                if hasVisited {
+                    reviewSection
+                }
             }
             .padding(20)
         }
@@ -202,6 +224,113 @@ struct RestaurantDetailView: View {
         )
         .navigationTitle("Restaurant Details")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: - Review Section
+
+    var reviewSection: some View {
+        VStack(alignment: .leading, spacing: 22) {
+
+            Divider()
+
+            HStack(spacing: 8) {
+                Text("Help Munchkin Learn!")
+                    .font(.dynaPuff(22))
+                    .fontWeight(.medium)
+
+                MunchkinAvatarView(size: 28)
+            }
+
+            Text("Tell Munchkin what you thought so it can recommend better restaurants next time!")
+                .font(.dynaPuff(15))
+                .foregroundStyle(AppColor.secondaryText)
+
+            if rating > 0 {
+                Label("Saved automatically", systemImage: "checkmark.circle.fill")
+                    .font(.dynaPuff(12))
+                    .foregroundStyle(.teal)
+            }
+
+            // Star rating
+            VStack(alignment: .leading, spacing: 12) {
+                Text("How much did you enjoy it?")
+                    .font(.dynaPuff(17))
+
+                HStack(spacing: 12) {
+                    ForEach(1...5, id: \.self) { star in
+                        Button {
+                            rating = star
+                        } label: {
+                            Image(
+                                systemName: star <= rating
+                                    ? "star.fill"
+                                    : "star"
+                            )
+                            .font(.dynaPuff(30))
+                            .foregroundStyle(.orange)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            // Flavour preferences
+            VStack(alignment: .leading, spacing: 12) {
+                Text("What flavours did you enjoy?")
+                    .font(.dynaPuff(17))
+
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ],
+                    spacing: 10
+                ) {
+                    ForEach(flavours, id: \.self) { flavour in
+                        Button {
+                            if selectedFlavours.contains(flavour) {
+                                selectedFlavours.remove(flavour)
+                            } else {
+                                selectedFlavours.insert(flavour)
+                            }
+                        } label: {
+                            Text(flavour)
+                                .font(.dynaPuff(15))
+                                .frame(maxWidth: .infinity)
+                                .padding(12)
+                                .background(
+                                    selectedFlavours.contains(flavour)
+                                        ? Color.orange.opacity(0.3)
+                                        : AppColor.card
+                                )
+                                .clipShape(
+                                    RoundedRectangle(cornerRadius: 12)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            // Written review
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Anything else Munchkin should know?")
+                    .font(.dynaPuff(17))
+
+                TextEditor(text: $writtenReview)
+                    .frame(height: 120)
+                    .padding(8)
+                    .background(AppColor.card)
+                    .clipShape(
+                        RoundedRectangle(cornerRadius: 12)
+                    )
+            }
+
+        }
+        .onAppear(perform: loadReview)
+        .onChange(of: rating) { _, _ in saveReview() }
+        .onChange(of: selectedFlavours) { _, _ in saveReview() }
+        .onChange(of: writtenReview) { _, _ in saveReview() }
     }
 
     // MARK: - Visit progress
@@ -289,6 +418,78 @@ struct RestaurantDetailView: View {
         UserDefaults.standard.set(data, forKey: "goals_v1")
     }
 
+    /// Restores a review the user already left for this restaurant.
+    private func loadReview() {
+        guard let data = UserDefaults.standard.data(forKey: reviewKey),
+              let review = try? JSONDecoder().decode(RestaurantReviewData.self, from: data)
+        else { return }
+
+        rating = review.rating
+        selectedFlavours = Set(review.flavours)
+        writtenReview = review.comment
+    }
+
+    /// Called automatically whenever the rating, flavours, or comment change.
+    private func saveReview() {
+        guard rating > 0 else { return }
+
+        // Rating a spot also records that it has been visited, so it can never
+        // be used again for the "try new restaurants" goals.
+        VisitedRestaurants.markVisited(restaurant.id)
+
+        // Keep the original date so edits do not look like new reviews and
+        // leave the user's persona stable while they type.
+        let existing = UserDefaults.standard.data(forKey: reviewKey)
+            .flatMap { try? JSONDecoder().decode(RestaurantReviewData.self, from: $0) }
+
+        let review = RestaurantReviewData(
+            restaurantName: restaurant.name,
+            rating: rating,
+            flavours: Array(selectedFlavours),
+            comment: writtenReview,
+            date: existing?.date ?? Date()
+        )
+
+        guard let encoded = try? JSONEncoder().encode(review) else { return }
+        UserDefaults.standard.set(encoded, forKey: reviewKey)
+
+        // Ratings and feedback drive the food persona.
+        _ = FoodPersonaStore.resolve(force: true)
+    }
+}
+
+// MARK: - Review Data Model
+
+struct RestaurantReviewData: Codable {
+    let restaurantName: String
+    let rating: Int
+    let flavours: [String]
+    let comment: String
+    let date: Date
+
+    init(
+        restaurantName: String,
+        rating: Int,
+        flavours: [String],
+        comment: String,
+        date: Date = Date()
+    ) {
+        self.restaurantName = restaurantName
+        self.rating = rating
+        self.flavours = flavours
+        self.comment = comment
+        self.date = date
+    }
+
+    /// Reviews saved before the date field existed still load correctly.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        restaurantName = try container.decode(String.self, forKey: .restaurantName)
+        rating = try container.decode(Int.self, forKey: .rating)
+        flavours = try container.decode([String].self, forKey: .flavours)
+        comment = try container.decode(String.self, forKey: .comment)
+        date = try container.decodeIfPresent(Date.self, forKey: .date) ?? Date()
+    }
 }
 
 #Preview {
