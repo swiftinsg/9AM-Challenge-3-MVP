@@ -7,34 +7,47 @@
 
 import SwiftUI
 
+enum ContentTab: Hashable {
+    case home
+    case mixer
+    case goals
+    case shop
+    case profile
+}
+
 struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage(AppAppearance.storageKey) private var appearanceMode = AppAppearance.device
 
     @StateObject private var location = UserLocationProvider()
     @State private var showLocationPrompt = false
+    @State private var selectedTab: ContentTab = .home
+
+    private func openShop() {
+        selectedTab = .shop
+    }
 
     var body: some View {
-        TabView {
-            Tab("Home", systemImage: "house.fill") {
-                HomeView()
+        TabView(selection: $selectedTab) {
+            Tab("Home", systemImage: "house.fill", value: .home) {
+                HomeView(onCurrencyTap: openShop)
                     .balancedContentWidth()
             }
-            Tab("Munchie Mixer", systemImage: "mug.fill") {
+            Tab("Munchie Mixer", systemImage: "mug.fill", value: .mixer) {
                 MunchieMixerView()
                     .balancedContentWidth()
             }
-            Tab("Goals", systemImage: "target") {
-                GoalsView()
+            Tab("Goals", systemImage: "target", value: .goals) {
+                GoalsView(onCurrencyTap: openShop)
                     .balancedContentWidth()
             }
-            Tab("Munchkin Shop", systemImage: "bag.fill") {
+            Tab("Munchkin Shop", systemImage: "bag.fill", value: .shop) {
                 NavigationStack {
                     ShopView()
                 }
                 .balancedContentWidth()
             }
-            Tab("Profile", systemImage: "person.crop.circle.fill") {
+            Tab("Profile", systemImage: "person.crop.circle.fill", value: .profile) {
                 ProfileView()
                     .balancedContentWidth()
             }

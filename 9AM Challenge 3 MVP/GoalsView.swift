@@ -246,6 +246,9 @@ enum GoalKeywords {
 }
 
 struct GoalsView: View {
+    /// Set by ContentView so the coin balance can jump to the shop.
+    var onCurrencyTap: (() -> Void)? = nil
+
     @State private var goals: [GoalItem] = []
     @State private var history: [CompletedGoalRecord] = []
     @State private var currency: Int = 0
@@ -428,11 +431,17 @@ struct GoalsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    CurrencyBubble(
-                        amount: currency,
-                        claimPulse: claimPulse,
-                        lastGain: lastClaimGain
-                    )
+                    Button {
+                        onCurrencyTap?()
+                    } label: {
+                        CurrencyBubble(
+                            amount: currency,
+                            claimPulse: claimPulse,
+                            lastGain: lastClaimGain
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open Munchkin Shop")
                 }
             }
             .onAppear(perform: load)

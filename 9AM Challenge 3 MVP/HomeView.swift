@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct HomeView: View {
+    /// Set by ContentView so the coin balance can jump to the shop.
+    var onCurrencyTap: (() -> Void)? = nil
+
     @State private var activeGoals: [GoalItem] = []
     @State private var claimableGoals: [GoalItem] = []
     @State private var currency = 0
@@ -139,11 +142,17 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    CurrencyBubble(
-                        amount: currency,
-                        claimPulse: claimPulse,
-                        lastGain: lastClaimGain
-                    )
+                    Button {
+                        onCurrencyTap?()
+                    } label: {
+                        CurrencyBubble(
+                            amount: currency,
+                            claimPulse: claimPulse,
+                            lastGain: lastClaimGain
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open Munchkin Shop")
                 }
             }
         }
