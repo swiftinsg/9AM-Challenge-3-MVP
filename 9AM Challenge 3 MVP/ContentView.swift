@@ -18,20 +18,25 @@ struct ContentView: View {
         TabView {
             Tab("Home", systemImage: "house.fill") {
                 HomeView()
+                    .balancedContentWidth()
             }
             Tab("Munchie Mixer", systemImage: "mug.fill") {
                 MunchieMixerView()
+                    .balancedContentWidth()
             }
             Tab("Goals", systemImage: "target") {
                 GoalsView()
+                    .balancedContentWidth()
             }
             Tab("Munchkin Shop", systemImage: "bag.fill") {
                 NavigationStack {
                     ShopView()
                 }
+                .balancedContentWidth()
             }
             Tab("Profile", systemImage: "person.crop.circle.fill") {
                 ProfileView()
+                    .balancedContentWidth()
             }
         }
         .preferredColorScheme(AppAppearance.colorScheme(for: appearanceMode))
@@ -63,6 +68,7 @@ struct ContentView: View {
             )
         ) {
             OnboardingView()
+                .balancedContentWidth(maxWidth: 820)
         }
     }
 }

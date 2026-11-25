@@ -24,7 +24,7 @@ struct HomeView: View {
                         .foregroundStyle(AppColor.secondaryText)
                         .bold()
                         .multilineTextAlignment(.leading)
-                        .frame(width: 375, alignment: .leading)
+                        .frame(maxWidth: 700, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 15) {
                         HStack {
@@ -55,7 +55,7 @@ struct HomeView: View {
                         }
                     }
                     .padding(20)
-                    .frame(width: 375)
+                    .frame(maxWidth: 700)
                     .background(personaSnapshot.persona.accent)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
 
@@ -119,7 +119,7 @@ struct HomeView: View {
                         }
                     }
                     .padding(20)
-                    .frame(width: 375)
+                    .frame(maxWidth: 700)
                     .background(AppColor.lavender)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
 
@@ -127,8 +127,9 @@ struct HomeView: View {
                         .padding(20)
                         .background(AppColor.peach)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .frame(width: 375)
+                        .frame(maxWidth: 700)
                 }
+                .padding(.horizontal, 16)
                 .onAppear {
                     loadGoals()
                     personaSnapshot = FoodPersonaStore.resolve()
