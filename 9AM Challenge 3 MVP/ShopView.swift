@@ -273,7 +273,7 @@ struct ShopView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Accessories")
                 .font(.dynaPuff(22))
-                .fontWeight(.bold)
+                .fontWeight(.medium)
 
             Text("Tap an accessory to buy, wear or sell it.")
                 .font(.dynaPuff(13))
@@ -302,7 +302,7 @@ struct ShopView: View {
         } label: {
             VStack(spacing: 8) {
                 Text(owned || unlocked ? item.emoji : "?")
-                    .font(.dynaPuff(46).weight(.bold))
+                    .font(.dynaPuff(46).weight(.medium))
                     .foregroundStyle(
                         owned || unlocked ? Color.primary : deepGreen.opacity(0.6)
                     )
@@ -317,7 +317,7 @@ struct ShopView: View {
                 Group {
                     if owned {
                         Label("Owned", systemImage: "checkmark.seal.fill")
-                            .font(.dynaPuff(11).weight(.bold))
+                            .font(.dynaPuff(11).weight(.medium))
                             .foregroundStyle(deepGreen)
                     } else if !unlocked {
                         Label("Own \(item.unlockRequirement) items", systemImage: "lock.fill")
@@ -325,7 +325,7 @@ struct ShopView: View {
                             .foregroundStyle(deepGreen.opacity(0.8))
                     } else {
                         Text("💰 \(item.price)")
-                            .font(.dynaPuff(13).weight(.bold))
+                            .font(.dynaPuff(13).weight(.medium))
                             .foregroundStyle(affordable ? Color.white : AppColor.mutedInk)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 6)

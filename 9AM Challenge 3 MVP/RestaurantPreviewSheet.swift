@@ -32,7 +32,7 @@ struct RestaurantPreviewSheet: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(restaurant.name)
                         .font(.dynaPuff(22))
-                        .fontWeight(.bold)
+                        .fontWeight(.medium)
                         .lineLimit(2)
 
                     Text(restaurant.description)

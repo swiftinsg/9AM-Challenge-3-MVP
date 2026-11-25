@@ -16,14 +16,16 @@ struct ContentView: View {
             Tab("Home", systemImage: "house.fill") {
                 HomeView()
             }
-            Tab("Explore", systemImage: "magnifyingglass") {
-                AllRestaurantsView()
+            Tab("Munchie Mixer", systemImage: "mug.fill") {
+                MunchieMixerView()
             }
             Tab("Goals", systemImage: "target") {
                 GoalsView()
             }
-            Tab("Munchie Mixer", systemImage: "mug.fill") {
-                MunchieMixerView()
+            Tab("Munchkin Shop", systemImage: "bag.fill") {
+                NavigationStack {
+                    ShopView()
+                }
             }
             Tab("Profile", systemImage: "person.crop.circle.fill") {
                 ProfileView()

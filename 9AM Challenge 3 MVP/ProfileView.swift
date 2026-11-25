@@ -27,7 +27,6 @@ struct ProfileView: View {
     private var halal = false
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
-    @AppStorage("goal_currency_v1") private var coins = 0
     @AppStorage(AppAppearance.storageKey) private var appearanceMode = AppAppearance.device
 
     @State private var personaSnapshot = FoodPersonaStore.resolve()
@@ -146,41 +145,6 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppColor.card)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
-
-                    // MARK: Shop (moved here from its own tab)
-                    NavigationLink {
-                        ShopView()
-                    } label: {
-                        HStack(spacing: 14) {
-                            Image(systemName: "bag.fill")
-                                .font(.dynaPuff(22))
-                                .foregroundStyle(.orange)
-                                .frame(width: 38)
-
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Munchkin Shop")
-                                    .font(.dynaPuff(17))
-
-                                Text("Dress up your pet with the coins you earn.")
-                                    .font(.dynaPuff(13))
-                                    .foregroundStyle(AppColor.secondaryText)
-                            }
-
-                            Spacer()
-
-                            Text("💰 \(coins)")
-                                .font(.dynaPuff(15).weight(.semibold))
-                                .foregroundStyle(.orange)
-
-                            Image(systemName: "chevron.right")
-                                .font(.dynaPuff(13))
-                                .foregroundStyle(AppColor.secondaryText)
-                        }
-                        .padding(20)
-                        .background(AppColor.card)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                    }
-                    .buttonStyle(.plain)
 
                     // MARK: Preferences
                     VStack(alignment: .leading, spacing: 20) {

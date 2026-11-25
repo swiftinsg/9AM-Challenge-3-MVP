@@ -10,6 +10,12 @@
 import Foundation
 import SwiftUI
 
+extension Notification.Name {
+    /// Posted when onboarding picks a new starting Munchkin so screens showing
+    /// the pet can refresh before the onboarding sheet is dismissed.
+    static let personaDidChange = Notification.Name("personaDidChange")
+}
+
 // MARK: - Personas
 
 enum FoodPersona: String, CaseIterable, Identifiable {
@@ -64,6 +70,18 @@ enum FoodPersona: String, CaseIterable, Identifiable {
         case .fiery: return "spicy things"
         case .panda: return "tangy things"
         case .terry: return "savoury things"
+        }
+    }
+
+    /// Craving tags used to rank weekly picks. These match the keys in
+    /// `Restaurant.matchingCravings`, so a persona's picks reflect its taste.
+    var tasteCravings: [String] {
+        switch self {
+        case .munchkin: return ["Spicy", "Sweet", "Tangy", "Savoury"]
+        case .cookie: return ["Sweet"]
+        case .fiery: return ["Spicy"]
+        case .panda: return ["Tangy"]
+        case .terry: return ["Savoury"]
         }
     }
 

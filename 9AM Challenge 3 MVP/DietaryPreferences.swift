@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 // MARK: - Restrictions
 
@@ -317,6 +318,46 @@ extension RestaurantDirectory {
             seenIDs.insert(restaurant.id)
         }
         return result
+    }
+
+    /// Orders the weekly picks for the current taste profile. Dietary fit stays
+    /// the top priority, then how well the spot matches the persona's cravings,
+    /// then distance when the "Near Me" filter is active.
+    static func personalizedWeeklyPicks(
+        _ picks: [Restaurant],
+        tasteCravings: [String],
+        near location: CLLocation? = nil,
+        using preferences: DietaryPreferences? = nil
+    ) -> [Restaurant] {
+        guard !tasteCravings.isEmpty || location != nil else { return picks }
+
+        let activePreferences = preferences.flatMap { $0.isEmpty ? nil : $0 }
+
+        return picks
+            .map { restaurant -> (restaurant: Restaurant, diet: Double, taste: Int, distance: CLLocationDistance?) in
+                let dietScore = activePreferences.map {
+                    restaurant.dietAdherence(for: $0).score
+                } ?? 0
+                let tasteScore = restaurant.matchingCravings(tasteCravings).count
+                let distance = location.map {
+                    CLLocation(
+                        latitude: restaurant.latitude,
+                        longitude: restaurant.longitude
+                    ).distance(from: $0)
+                }
+                return (restaurant, dietScore, tasteScore, distance)
+            }
+            .sorted { lhs, rhs in
+                if lhs.diet != rhs.diet { return lhs.diet > rhs.diet }
+                if lhs.taste != rhs.taste { return lhs.taste > rhs.taste }
+                if let lhsDistance = lhs.distance, let rhsDistance = rhs.distance,
+                   lhsDistance != rhsDistance {
+                    return lhsDistance < rhsDistance
+                }
+                return lhs.restaurant.name.localizedCaseInsensitiveCompare(rhs.restaurant.name)
+                    == .orderedAscending
+            }
+            .map(\.restaurant)
     }
 
 }

@@ -146,6 +146,11 @@ struct HomeView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .personaDidChange)) { _ in
+            // Onboarding picks the starting pet behind its sheet; refresh here
+            // so Home already shows the new Munchkin when the sheet closes.
+            personaSnapshot = FoodPersonaStore.resolve(force: true)
+        }
     }
 
     private func loadGoals() {

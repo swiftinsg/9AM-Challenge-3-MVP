@@ -10,11 +10,17 @@ import SwiftUI
 struct RegionFilterBar: View {
     @Binding var selection: String
 
+    /// Weekly recommendations use "Near Me" for the unrestricted option and
+    /// then sort those picks by distance.
+    var usesNearMeLabel = false
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(RestaurantRegion.allCases) { region in
                     let isSelected = selection == region.rawValue
+                    let isNearMeOption = usesNearMeLabel && region.isAnywhere
+                    let title = isNearMeOption ? "Near Me" : region.rawValue
 
                     Button {
                         withAnimation(.easeInOut(duration: 0.15)) {
@@ -23,13 +29,15 @@ struct RegionFilterBar: View {
                     } label: {
                         HStack(spacing: 5) {
                             Image(
-                                systemName: region.isAnywhere
-                                    ? "globe.asia.australia.fill"
-                                    : "mappin.circle.fill"
+                                systemName: isNearMeOption
+                                    ? "location.fill"
+                                    : (region.isAnywhere
+                                        ? "globe.asia.australia.fill"
+                                        : "mappin.circle.fill")
                             )
                             .font(.dynaPuff(13))
 
-                            Text(region.rawValue)
+                            Text(title)
                         }
                         .font(.dynaPuff(15).weight(.semibold))
                         .padding(.horizontal, 14)
@@ -49,7 +57,7 @@ struct RegionFilterBar: View {
                         )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Filter by \(region.rawValue)")
+                    .accessibilityLabel("Filter by \(title)")
                     .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
             }

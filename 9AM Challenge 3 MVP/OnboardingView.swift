@@ -94,12 +94,14 @@ struct OnboardingView: View {
 
                 Spacer()
 
-                Button(step == .preferences ? "Start Munching" : "Next") {
-                    goNext()
+                if step != .recommendation {
+                    Button(step == .preferences ? "Start Munching" : "Next") {
+                        goNext()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    .disabled(step == .questions && selectedFlavours.isEmpty && selectedTreat == nil)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.orange)
-                .disabled(step == .questions && selectedFlavours.isEmpty && selectedTreat == nil)
             }
             .padding(20)
         }
@@ -128,6 +130,7 @@ struct OnboardingView: View {
     private func applyRecommendation() {
         let result = recommendation
         FoodPersonaStore.setPreferredPersona(result.persona, reason: result.explanation)
+        NotificationCenter.default.post(name: .personaDidChange, object: nil)
     }
 
     private func toggleFlavour(_ id: String) {
@@ -140,6 +143,7 @@ struct OnboardingView: View {
 
     private func finish() {
         _ = FoodPersonaStore.resolve(force: true)
+        NotificationCenter.default.post(name: .personaDidChange, object: nil)
         dismiss()
     }
 
@@ -153,7 +157,8 @@ struct OnboardingView: View {
                 .clipShape(Circle())
 
             Text("Welcome to Munchkin!")
-                .font(.dynaPuff(34).bold())
+                .font(.dynaPuff(34))
+                .fontWeight(.medium)
                 .multilineTextAlignment(.center)
 
             Text("Your pocket food guide for Singapore. Tell us what you love and we'll find the good stuff.")
@@ -173,9 +178,9 @@ struct OnboardingView: View {
                     "We only suggest spots that match every dietary need you select."
                 )
                 infoRow(
-                    "magnifyingglass",
-                    "Every restaurant, one search",
-                    "Browse the full directory in Explore, with region and diet filters."
+                    "bag.fill",
+                    "A shop that rewards you",
+                    "Spend the goal coins you earn on a fresh look for your Munchkin."
                 )
             }
             .padding(20)
@@ -188,40 +193,41 @@ struct OnboardingView: View {
     private var tutorialPage: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("A quick tour")
-                .font(.dynaPuff(22).bold())
+                .font(.dynaPuff(22))
+                .fontWeight(.medium)
 
             Text("Five tabs, one very well-fed pet.")
                 .font(.dynaPuff(15))
                 .foregroundStyle(AppColor.secondaryText)
 
-            VStack(alignment: .leading, spacing: 14) {
-                tutorialRow(
+            LazyVGrid(columns: answerColumns, spacing: 12) {
+                tutorialCard(
                     "house.fill",
                     "Home",
-                    "Meet the pet matched to your taste and see your top three picks."
+                    "Meet your pet and see picks matched to your taste."
                 )
-                tutorialRow(
-                    "magnifyingglass",
-                    "Explore",
-                    "Search every restaurant by name, cuisine or area."
-                )
-                tutorialRow(
-                    "target",
-                    "Goals",
-                    "Collect little food challenges and earn coins."
-                )
-                tutorialRow(
+                tutorialCard(
                     "mug.fill",
                     "Munchie Mixer",
                     "Choose your cravings and get restaurants that match them."
                 )
-                tutorialRow(
+                tutorialCard(
+                    "target",
+                    "Goals",
+                    "Collect little food challenges and earn coins."
+                )
+                tutorialCard(
+                    "bag.fill",
+                    "Munchkin Shop",
+                    "Dress your Munchkin with coins earned from goals."
+                )
+                tutorialCard(
                     "person.crop.circle.fill",
                     "Profile",
-                    "See which pet matches your reviews, change preferences, or open the Munchkin Shop."
+                    "See which pet matches your reviews and change preferences."
                 )
             }
-            .padding(20)
+            .padding(16)
             .background(AppColor.card)
             .clipShape(RoundedRectangle(cornerRadius: 22))
 
@@ -235,7 +241,8 @@ struct OnboardingView: View {
     private var questionsPage: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("What do you love to eat?")
-                .font(.dynaPuff(22).bold())
+                .font(.dynaPuff(22))
+                .fontWeight(.medium)
 
             Text("Two quick questions and I'll pick the Munchkin that fits you best.")
                 .font(.dynaPuff(15))
@@ -291,7 +298,8 @@ struct OnboardingView: View {
     private var recommendationPage: some View {
         VStack(spacing: 20) {
             Text("Meet your starting Munchkin!")
-                .font(.dynaPuff(22).bold())
+                .font(.dynaPuff(22))
+                .fontWeight(.medium)
                 .multilineTextAlignment(.center)
 
             VStack(spacing: 14) {
@@ -301,7 +309,8 @@ struct OnboardingView: View {
                     .clipShape(Circle())
 
                 Text(recommendation.persona.name)
-                    .font(.dynaPuff(28).bold())
+                    .font(.dynaPuff(28))
+                    .fontWeight(.medium)
                     .multilineTextAlignment(.center)
 
                 Text(recommendation.persona.tagline)
@@ -461,26 +470,29 @@ struct OnboardingView: View {
     }
 
     @ViewBuilder
-    private func tutorialRow(_ icon: String, _ title: String, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(alignment: .top, spacing: 0) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(.teal)
-                    .frame(width: 30, height: 26, alignment: .center)
+    private func tutorialCard(_ icon: String, _ title: String, _ detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.orange)
+                .frame(width: 34, height: 34)
+                .background(Color.orange.opacity(0.15))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                Text(title)
-                    .font(.dynaPuff(15).weight(.semibold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            Text(title)
+                .font(.dynaPuff(15).weight(.semibold))
 
             Text(detail)
-                .font(.dynaPuff(13))
+                .font(.dynaPuff(12))
                 .foregroundStyle(AppColor.secondaryText)
-                .padding(.leading, 42)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
+        .padding(12)
+        .background(AppColor.cardRaised)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 

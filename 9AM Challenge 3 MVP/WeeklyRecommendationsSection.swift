@@ -15,6 +15,18 @@ struct WeeklyRecommendationsSection: View {
     @AppStorage("dietVegan") private var vegan = false
     @AppStorage("dietHalal") private var halal = false
 
+    @StateObject private var location = UserLocationProvider()
+
+    /// The unrestricted region option is presented as "Near Me" here, so
+    /// picking it turns on distance sorting.
+    private var isNearMe: Bool {
+        preferredLocation == "Anywhere"
+    }
+
+    private var persona: FoodPersona {
+        FoodPersonaStore.resolve().persona
+    }
+
     private var region: RestaurantRegion {
         RestaurantRegion.from(preference: preferredLocation)
     }
@@ -29,7 +41,13 @@ struct WeeklyRecommendationsSection: View {
 
     private var restaurants: [Restaurant] {
         let picks = RestaurantDirectory.dietAwareWeeklyPicks(for: region, using: diet)
-        return Array(picks.prefix(3))
+        let ranked = RestaurantDirectory.personalizedWeeklyPicks(
+            picks,
+            tasteCravings: persona.tasteCravings,
+            near: isNearMe ? location.location : nil,
+            using: diet
+        )
+        return Array(ranked.prefix(3))
     }
 
     /// True for a vegan-friendly pick that is not fully vegan, so Munchkin can
@@ -59,20 +77,27 @@ struct WeeklyRecommendationsSection: View {
                 }
             }
 
+            Text("Picked for \(persona.shortTaste) tastes")
+                .font(.dynaPuff(12))
+                .foregroundStyle(AppColor.secondaryText)
+
             HStack {
                 Menu {
                     Picker("Region", selection: $preferredLocation) {
                         ForEach(RestaurantRegion.allCases) { region in
-                            Text(region.rawValue).tag(region.rawValue)
+                            Text(region.isAnywhere ? "Near Me" : region.rawValue)
+                                .tag(region.rawValue)
                         }
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        Image(systemName: "mappin.circle.fill")
+                        Image(systemName: region.isAnywhere
+                              ? "location.fill"
+                              : "mappin.circle.fill")
 
                         Text(
                             region.isAnywhere
-                                ? "All regions"
+                                ? "Near Me"
                                 : "\(region.rawValue) region"
                         )
 
@@ -86,9 +111,13 @@ struct WeeklyRecommendationsSection: View {
                     .background(Color.orange.opacity(0.12))
                     .clipShape(Capsule())
                 }
-                .accessibilityLabel("Preferred region")
+                .accessibilityLabel(isNearMe ? "Near Me" : "Preferred region")
 
                 Spacer()
+            }
+
+            if isNearMe {
+                NearMeStatusMessage(location: location)
             }
 
             if restaurants.isEmpty {
@@ -115,6 +144,12 @@ struct WeeklyRecommendationsSection: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            if isNearMe { location.requestLocation() }
+        }
+        .onChange(of: isNearMe) { _, newValue in
+            if newValue { location.requestLocation() }
         }
     }
 }

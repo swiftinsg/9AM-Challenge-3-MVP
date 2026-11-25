@@ -43,6 +43,7 @@
         "INFOPLIST_KEY_CFBundleDisplayName": "Munchkins",
         "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
         "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.food-and-drink",
+        "INFOPLIST_KEY_NSLocationWhenInUseUsageDescription": "Munchkins uses your location to show restaurants near you.",
         "INFOPLIST_KEY_UIAppFonts": "DynaPuff-Regular.ttf",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
         "INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents": "YES",

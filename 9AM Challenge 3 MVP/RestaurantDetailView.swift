@@ -101,7 +101,7 @@ struct RestaurantDetailView: View {
 
                     if restaurant.isHalalCertified {
                         Text("MUIS halal certified")
-                            .font(.dynaPuff(13).weight(.semibold))
+                            .font(.dynaPuff(13).weight(.medium))
                             .foregroundStyle(AppColor.secondaryText)
                     }
 
@@ -123,7 +123,7 @@ struct RestaurantDetailView: View {
 
                     Text("Restaurant Information")
                         .font(.dynaPuff(22))
-                        .fontWeight(.bold)
+                        .fontWeight(.medium)
 
                     Label(
                         "Location: \(restaurant.locationLine)",
@@ -171,7 +171,7 @@ struct RestaurantDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Menu Highlights 🍽️")
                         .font(.dynaPuff(22))
-                        .fontWeight(.bold)
+                        .fontWeight(.medium)
 
                     Text("🍜 Signature Dish")
                     Text("🥟 Chef's Special")
@@ -184,7 +184,7 @@ struct RestaurantDetailView: View {
                 VStack(alignment: .leading, spacing: 15) {
                     Text("Have you visited?")
                         .font(.dynaPuff(22))
-                        .fontWeight(.bold)
+                        .fontWeight(.medium)
 
                     Button {
                         if hasVisited {
@@ -242,7 +242,7 @@ struct RestaurantDetailView: View {
             HStack(spacing: 8) {
                 Text("Help Munchkin Learn!")
                     .font(.dynaPuff(22))
-                    .fontWeight(.bold)
+                    .fontWeight(.medium)
 
                 MunchkinAvatarView(size: 28)
             }

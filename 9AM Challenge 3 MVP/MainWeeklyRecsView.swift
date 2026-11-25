@@ -19,6 +19,17 @@ struct WeeklyRecsView: View {
 
     @State private var selectedRestaurant: Restaurant?
     @State private var searchText = ""
+    @StateObject private var location = UserLocationProvider()
+
+    /// "Anywhere" is shown as "Near Me" on this screen and turns on distance
+    /// sorting for the weekly picks.
+    private var isNearMe: Bool {
+        preferredLocation == "Anywhere"
+    }
+
+    private var persona: FoodPersona {
+        FoodPersonaStore.resolve().persona
+    }
 
     private var region: RestaurantRegion {
         RestaurantRegion.from(preference: preferredLocation)
@@ -33,7 +44,13 @@ struct WeeklyRecsView: View {
     }
 
     private var restaurants: [Restaurant] {
-        RestaurantDirectory.dietAwareWeeklyPicks(for: region, using: diet)
+        let picks = RestaurantDirectory.dietAwareWeeklyPicks(for: region, using: diet)
+        return RestaurantDirectory.personalizedWeeklyPicks(
+            picks,
+            tasteCravings: persona.tasteCravings,
+            near: isNearMe ? location.location : nil,
+            using: diet
+        )
     }
 
     private var visibleRestaurants: [Restaurant] {
@@ -70,7 +87,15 @@ struct WeeklyRecsView: View {
                 .font(.dynaPuff(15))
                 .foregroundStyle(AppColor.secondaryText)
 
-                RegionFilterBar(selection: $preferredLocation)
+                Text("Picked for \(persona.shortTaste) tastes")
+                    .font(.dynaPuff(13))
+                    .foregroundStyle(AppColor.secondaryText)
+
+                RegionFilterBar(selection: $preferredLocation, usesNearMeLabel: true)
+
+                if isNearMe {
+                    NearMeStatusMessage(location: location)
+                }
 
                 if visibleRestaurants.isEmpty {
                     ContentUnavailableView(
@@ -111,6 +136,12 @@ struct WeeklyRecsView: View {
         .background(
             AppColor.background
         )
+        .onAppear {
+            if isNearMe { location.requestLocation() }
+        }
+        .onChange(of: isNearMe) { _, newValue in
+            if newValue { location.requestLocation() }
+        }
         .searchable(text: $searchText, prompt: "Search name, cuisine or area")
 
         // Opens the half-sheet
