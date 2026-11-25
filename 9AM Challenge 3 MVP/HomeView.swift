@@ -11,6 +11,8 @@ struct HomeView: View {
     @State private var activeGoals: [GoalItem] = []
     @State private var claimableGoals: [GoalItem] = []
     @State private var currency = 0
+    @State private var claimPulse = 0
+    @State private var lastClaimGain = 0
     @State private var personaSnapshot = FoodPersonaStore.resolve()
 
     var body: some View {
@@ -91,7 +93,7 @@ struct HomeView: View {
 
                                 ForEach(claimableGoals) { goal in
                                     Button {
-                                        claimReward(goal.id)
+                                        claimReward(goal)
                                     } label: {
                                         HStack(spacing: 8) {
                                             Text(goal.title)
@@ -136,9 +138,11 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Text("💰 \(currency)")
-                        .font(.dynaPuff(17))
-                        .foregroundStyle(.orange)
+                    CurrencyBubble(
+                        amount: currency,
+                        claimPulse: claimPulse,
+                        lastGain: lastClaimGain
+                    )
                 }
             }
         }
@@ -156,9 +160,12 @@ struct HomeView: View {
         currency = UserDefaults.standard.integer(forKey: "goal_currency_v1")
     }
 
-    private func claimReward(_ id: UUID) {
-        GoalClaim.claim(id)
+    private func claimReward(_ goal: GoalItem) {
+        let reward = GoalReward.coins(for: goal.difficulty)
+        GoalClaim.claim(goal.id)
         loadGoals()
+        lastClaimGain = reward
+        claimPulse += 1
     }
 }
 

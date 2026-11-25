@@ -249,6 +249,8 @@ struct GoalsView: View {
     @State private var goals: [GoalItem] = []
     @State private var history: [CompletedGoalRecord] = []
     @State private var currency: Int = 0
+    @State private var claimPulse = 0
+    @State private var lastClaimGain = 0
 
     @State private var editor: GoalEditor?
     @State private var clearPrompt: ClearPrompt?
@@ -430,9 +432,11 @@ struct GoalsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Text("💰 \(currency)")
-                        .font(.dynaPuff(17))
-                        .foregroundStyle(.orange)
+                    CurrencyBubble(
+                        amount: currency,
+                        claimPulse: claimPulse,
+                        lastGain: lastClaimGain
+                    )
                 }
             }
             .onAppear(perform: load)
@@ -499,7 +503,7 @@ struct GoalsView: View {
 
             if isReadyToClaim {
                 Button {
-                    claimReward(g.id)
+                    claimReward(g)
                 } label: {
                     Label("Claim +💰\(GoalReward.coins(for: g.difficulty))", systemImage: "gift.fill")
                         .font(.dynaPuff(15).weight(.semibold))
@@ -565,9 +569,12 @@ struct GoalsView: View {
         save()
     }
 
-    func claimReward(_ id: UUID) {
-        GoalClaim.claim(id)
+    func claimReward(_ goal: GoalItem) {
+        let reward = GoalReward.coins(for: goal.difficulty)
+        GoalClaim.claim(goal.id)
         load()
+        lastClaimGain = reward
+        claimPulse += 1
     }
 
     func load() {
